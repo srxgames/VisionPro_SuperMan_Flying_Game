@@ -14,10 +14,12 @@ struct PilotInput {
 struct HeadPose {
     var position: SIMD3<Float>
     var forward: SIMD3<Float>
+    var orientation: simd_quatf
 
     init(transform: simd_float4x4) {
         position = transform.columns.3.xyz
         forward = -simd_normalize(transform.columns.2.xyz)
+        orientation = simd_quatf(transform)
     }
 }
 

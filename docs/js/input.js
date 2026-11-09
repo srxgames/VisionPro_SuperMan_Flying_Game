@@ -37,6 +37,7 @@ function headFromTransform(transform) {
   return {
     position: new THREE.Vector3(p.x, p.y, p.z),
     forward: new THREE.Vector3(0, 0, -1).applyQuaternion(quaternion),
+    quaternion,
   };
 }
 
@@ -119,6 +120,7 @@ export class DesktopInput {
       head: {
         position: this.camera.position.clone(),
         forward: new THREE.Vector3(0, 0, -1).applyQuaternion(this.camera.quaternion),
+        quaternion: this.camera.quaternion.clone(),
       },
       hands: [],
       throttle: flying ? 1 : 0,

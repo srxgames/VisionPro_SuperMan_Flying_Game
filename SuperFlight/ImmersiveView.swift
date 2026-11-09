@@ -15,7 +15,8 @@ struct ImmersiveView: View {
 
             if let hud = attachments.entity(for: "hud") {
                 let headAnchor = AnchorEntity(.head)
-                hud.position = [0, -0.35, -1.2]
+                hud.position = [0, -0.5, -1.0]
+                hud.orientation = simd_quatf(angle: -atan2(0.5, 1.0), axis: [1, 0, 0])
                 headAnchor.addChild(hud)
                 content.add(headAnchor)
             }

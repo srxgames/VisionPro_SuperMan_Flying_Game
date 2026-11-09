@@ -22,7 +22,9 @@ export class Hud {
       new THREE.PlaneGeometry(0.62, 0.62 * (220 / 1024)),
       new THREE.MeshBasicMaterial({ map: this.texture, transparent: true, depthTest: false, fog: false }),
     );
-    mesh.position.set(0, -0.32, -1.2);
+    // Low in the field of view (~27° down), tilted back to face the eyes.
+    mesh.position.set(0, -0.5, -1.0);
+    mesh.rotation.x = -Math.atan2(0.5, 1.0);
     mesh.renderOrder = 999;
     camera.add(mesh);
   }

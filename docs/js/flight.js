@@ -5,11 +5,17 @@ import { RING_RADIUS, setRingState } from './world.js';
 export const TUNING = {
   cruiseSpeed: 40,
   boostMultiplier: 2.5,
+  /** How quickly speed eases toward the throttle target (per second). */
   responsiveness: 1.8,
+  /** How quickly the flight direction swings toward where you're steering (per second). */
+  turnRate: 3,
   headSteerWeight: 0.4,
-  reachStart: 0.25,
-  reachFull: 0.5,
-  shoulderDrop: 0.25,
+  /** Shoulder-to-palm distance (m): below reachStart you hover, at reachFull you're at full speed. */
+  reachStart: 0.3,
+  reachFull: 0.55,
+  /** Neck pivot relative to the eyes, in head space, so turning or nodding doesn't move the shoulder estimate. */
+  neckOffset: new THREE.Vector3(0, -0.08, 0.09),
+  shoulderDropFromNeck: 0.17,
   lockOnDuration: 6,
   lockOnMinThrottle: 0.7,
   courseResetDelay: 5,
@@ -18,7 +24,7 @@ export const TUNING = {
 
 /**
  * The player never moves; worldRoot is shifted opposite the player's position.
- * input = { mode: 'hands'|'controllers'|'head'|'desktop', head: {position, forward} | null,
+ * input = { mode: 'hands'|'controllers'|'head'|'desktop', head: {position, forward, quaternion} | null,
  *           hands: [{ palm, isFist }], throttle, boost }
  */
 export class FlightController {
@@ -27,12 +33,14 @@ export class FlightController {
     this.rings = rings;
     this.player = new THREE.Vector3();
     this.velocity = new THREE.Vector3();
+    this.heading = new THREE.Vector3(0, 0, -1);
     this.reset();
   }
 
   reset() {
     this.player.copy(TUNING.startPosition);
     this.velocity.set(0, 0, 0);
+    this.heading.set(0, 0, -1);
     this.collected = new Set();
     this.lockTarget = null;
     this.lockTimeRemaining = 0;
@@ -94,9 +102,13 @@ export class FlightController {
       }
     }
 
+    // Speed and direction are eased separately so that turning never bleeds off speed.
     const targetSpeed = throttle * TUNING.cruiseSpeed * (boost ? TUNING.boostMultiplier : 1);
-    const desired = direction.multiplyScalar(targetSpeed);
-    this.velocity.lerp(desired, Math.min(1, TUNING.responsiveness * dt));
+    this.speed += (targetSpeed - this.speed) * Math.min(1, TUNING.responsiveness * dt);
+    this.heading.lerp(direction, Math.min(1, TUNING.turnRate * dt));
+    if (this.heading.lengthSq() < 1e-6) this.heading.copy(direction);
+    this.heading.normalize();
+    this.velocity.copy(this.heading).multiplyScalar(this.speed);
 
     this.player.addScaledVector(this.velocity, dt);
     this.player.y = Math.max(this.player.y, 0);
@@ -110,32 +122,35 @@ export class FlightController {
       if (this.completeTimer > TUNING.courseResetDelay) this.reset();
     }
 
-    this.speed = this.velocity.length();
     this.altitude = this.player.y + head.position.y;
     this.isBoosting = boost;
   }
 
-  /** Superman pose: reach forward to fly, point to steer, two fists to boost. */
+  /**
+   * Superman pose: arm extension alone sets speed, arms + head steer, two fists boost.
+   * No tracked hands means hover.
+   */
   intent(input) {
     const head = input.head;
     if (input.mode !== 'hands') {
       return { throttle: input.throttle, direction: head.forward.clone(), boost: input.boost };
     }
 
-    const idle = { throttle: 0, direction: head.forward.clone(), boost: false };
-    const flatForward = new THREE.Vector3(head.forward.x, 0, head.forward.z);
-    if (flatForward.lengthSq() < 1e-4) return idle;
-    flatForward.normalize();
+    const idle = { throttle: 0, direction: this.heading.clone(), boost: false };
+    if (input.hands.length === 0) return idle;
 
-    const shoulders = head.position.clone();
-    shoulders.y -= TUNING.shoulderDrop;
+    const shoulders = TUNING.neckOffset.clone().applyQuaternion(head.quaternion).add(head.position);
+    shoulders.y -= TUNING.shoulderDropFromNeck;
     const palms = new THREE.Vector3();
     input.hands.forEach((hand) => palms.add(hand.palm));
     palms.divideScalar(input.hands.length);
 
+    // Reach is measured independent of where the head points. Downward reach is discounted so
+    // arms hanging at your sides read as "not extended", while arms angled into a dive still give thrust.
     const toPalms = palms.sub(shoulders);
-    const reach = toPalms.dot(flatForward);
-    const throttle = THREE.MathUtils.smoothstep(reach, TUNING.reachStart, TUNING.reachFull);
+    const reachVector = toPalms.clone();
+    if (reachVector.y < 0) reachVector.y *= 0.4;
+    const throttle = THREE.MathUtils.smoothstep(reachVector.length(), TUNING.reachStart, TUNING.reachFull);
     if (throttle <= 0 || toPalms.lengthSq() < 1e-4) return idle;
 
     const direction = toPalms.normalize().lerp(head.forward, TUNING.headSteerWeight).normalize();
