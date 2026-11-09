@@ -8,7 +8,7 @@ import simd
 @Observable
 final class FlightController {
     struct Tuning {
-        var cruiseSpeed: Float = 20
+        var cruiseSpeed: Float = 40
         var boostMultiplier: Float = 2.5
         /// Higher = snappier velocity changes. Lower is more comfortable.
         var responsiveness: Float = 1.8

@@ -3,7 +3,7 @@ import { RING_RADIUS, setRingState } from './world.js';
 
 // Same feel settings as the native FlightController.Tuning.
 export const TUNING = {
-  cruiseSpeed: 20,
+  cruiseSpeed: 40,
   boostMultiplier: 2.5,
   responsiveness: 1.8,
   headSteerWeight: 0.4,
