@@ -1,0 +1,27 @@
+# Generate the Xcode project on a Mac with:  brew install xcodegen && xcodegen
+name: SuperFlight
+options:
+  bundleIdPrefix: com.seanr
+  deploymentTarget:
+    visionOS: "2.0"
+targets:
+  SuperFlight:
+    type: application
+    platform: visionOS
+    sources:
+      - SuperFlight
+    info:
+      path: SuperFlight/Info.plist
+      properties:
+        CFBundleDisplayName: SuperFlight
+        NSHandsTrackingUsageDescription: SuperFlight uses your hand pose to control flight speed and direction.
+        NSWorldSensingUsageDescription: SuperFlight tracks your head position to steer you through the world.
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: true
+          UIApplicationPreferredDefaultSceneSessionRole: UIWindowSceneSessionRoleApplication
+          UISceneConfigurations: {}
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.seanr.superflight
+        SWIFT_VERSION: "5.0"
+        TARGETED_DEVICE_FAMILY: "7"

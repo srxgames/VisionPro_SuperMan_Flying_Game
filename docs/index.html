@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SuperFlight</title>
+  <style>
+    html, body { margin: 0; height: 100%; overflow: hidden; background: #6fb3f7; font-family: -apple-system, system-ui, "Segoe UI", sans-serif; }
+    canvas { display: block; }
+    #overlay {
+      position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+      background: rgba(8, 18, 36, 0.45); backdrop-filter: blur(6px);
+    }
+    #overlay.hidden { display: none; }
+    .card {
+      max-width: 520px; padding: 36px 44px; border-radius: 28px; color: #fff;
+      background: rgba(20, 30, 50, 0.75); box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+    }
+    h1 { margin: 0 0 8px; font-size: 44px; letter-spacing: 1px; }
+    p { margin: 0 0 18px; opacity: 0.85; }
+    ul { margin: 0 0 24px; padding-left: 20px; line-height: 1.7; }
+    .buttons { display: flex; gap: 12px; flex-wrap: wrap; }
+    button {
+      font-size: 18px; font-weight: 600; padding: 14px 26px; border: 0; border-radius: 999px;
+      cursor: pointer; color: #0b1a33; background: #ffd24a;
+    }
+    button.secondary { background: rgba(255,255,255,0.85); }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
+    #status { margin-top: 16px; font-size: 14px; opacity: 0.75; }
+  </style>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="overlay">
+    <div class="card">
+      <h1>SuperFlight</h1>
+      <p>Fly through the city like Superman.</p>
+      <ul>
+        <li><b>Reach your arms forward</b> to fly. Farther reach = faster.</li>
+        <li><b>Point your arms</b> to steer. Turn your body to turn.</li>
+        <li><b>Make two fists</b> to boost.</li>
+        <li><b>Drop your arms</b> to hover.</li>
+        <li><b>Look at a ring and pinch</b> to lock on.</li>
+      </ul>
+      <div class="buttons">
+        <button id="enter-vr" disabled>Enter VR</button>
+        <button id="play-desktop" class="secondary">Play in Browser</button>
+      </div>
+      <div id="status">Checking for VR support…</div>
+    </div>
+  </div>
+  <script type="module" src="./js/main.js"></script>
+</body>
+</html>
